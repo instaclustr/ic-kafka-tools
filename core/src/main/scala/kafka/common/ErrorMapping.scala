@@ -46,6 +46,7 @@ object ErrorMapping {
   val OffsetsLoadInProgressCode: Short = 14
   val ConsumerCoordinatorNotAvailableCode: Short = 15
   val NotCoordinatorForConsumerCode: Short = 16
+  val TxCoordinatorNotAvailableCode: Short = 17
 
   private val exceptionToCode = 
     Map[Class[Throwable], Short](

@@ -1,3 +1,4 @@
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -216,6 +217,27 @@ object SerializationTestUtils {
     val body = new JoinGroupResponse(0.asInstanceOf[Short], 1, "consumer1", List(new TopicPartition("test11", 1)))
     JoinGroupResponseAndHeader(1, body)
   }
+
+  def createTestTransactionRequest: TransactionRequest = {
+    new TransactionRequest(1, "client 1", 1000,
+      TransactionRequestInfo("group 1", 1, 1, 1000, Seq(
+        TopicAndPartition(topic1, 0), TopicAndPartition(topic2, 0)
+      )))
+  }
+
+  def createTestTransactionResponse: TransactionResponse = {
+    val responseMap = Map((TopicAndPartition(topic1, 0), ErrorMapping.NoError),
+                          (TopicAndPartition(topic2, 0), ErrorMapping.NoError))
+    TransactionResponse(1, 1,responseMap)
+  }
+
+  def createTestTxCoordinatorMetadataRequest: TxCoordinatorMetadataRequest = {
+    TxCoordinatorMetadataRequest("txGroup 1", clientId = "client 1")
+  }
+
+  def createTestTxCoordinatorMetadataResponse: TxCoordinatorMetadataResponse = {
+    TxCoordinatorMetadataResponse(Some(brokers.head), ErrorMapping.NoError)
+  }
 }
 
 class RequestResponseSerializationTest extends JUnitSuite {
@@ -242,6 +264,10 @@ class RequestResponseSerializationTest extends JUnitSuite {
   private val heartbeatResponse = SerializationTestUtils.createHeartbeatResponseAndHeader
   private val joinGroupRequest = SerializationTestUtils.createJoinGroupRequestAndHeader
   private val joinGroupResponse = SerializationTestUtils.createJoinGroupResponseAndHeader
+  private val transactionRequest = SerializationTestUtils.createTestTransactionRequest
+  private val transactionResponse = SerializationTestUtils.createTestTransactionResponse
+  private val txCoordinatorMetadataRequest = SerializationTestUtils.createTestTxCoordinatorMetadataRequest
+  private val txCoordinatorMetadataResponse = SerializationTestUtils.createTestTxCoordinatorMetadataResponse
 
   @Test
   def testSerializationAndDeserialization() {
@@ -254,7 +280,10 @@ class RequestResponseSerializationTest extends JUnitSuite {
                                offsetCommitResponse, offsetFetchRequest, offsetFetchResponse,
                                consumerMetadataRequest, consumerMetadataResponse,
                                consumerMetadataResponseNoCoordinator, heartbeatRequest,
-                               heartbeatResponse, joinGroupRequest, joinGroupResponse)
+                               heartbeatResponse, joinGroupRequest, joinGroupResponse,
+                               transactionRequest, transactionResponse,
+                               txCoordinatorMetadataRequest, txCoordinatorMetadataResponse)
+
 
     requestsAndResponses.foreach { original =>
       val buffer = ByteBuffer.allocate(original.sizeInBytes)

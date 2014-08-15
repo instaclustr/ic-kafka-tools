@@ -1,0 +1,97 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package kafka.api
+
+import java.nio.ByteBuffer
+import kafka.api.ApiUtils._
+import kafka.common.{TopicAndPartition, ErrorMapping}
+
+import scala.collection.Map
+
+object TransactionResponse {
+  def readFrom(buffer: ByteBuffer): TransactionResponse = {
+
+    val correlationId = buffer.getInt
+    val txId = buffer.getInt
+    val topicCount = buffer.getInt
+    val statusPairs = (1 to topicCount).flatMap(_ => {
+      val topic = readShortString(buffer)
+      val partitionCount = buffer.getInt
+      (1 to partitionCount).map(_ => {
+        val partition = buffer.getInt
+        val error = buffer.getShort
+        (TopicAndPartition(topic, partition), error)
+      })
+    })
+    TransactionResponse(correlationId, txId,  Map(statusPairs:_*))
+  }
+}
+
+
+case class TransactionResponse(correlationId: Int,
+                               txId: Int,
+                               status: Map[TopicAndPartition, Short])
+        extends RequestOrResponse() {
+
+  private lazy val statusGroupedByTopic = status.groupBy(_._1.topic)
+
+  def hasError = status.values.exists(_ != ErrorMapping.NoError)
+
+  val sizeInBytes = {
+    val groupedStatus = statusGroupedByTopic
+    4 + /* correlation id */
+    4 + /* transaction id */
+    4 + /* topic count */
+    groupedStatus.foldLeft (0) ((foldedTopics, currTopic) => {
+      foldedTopics +
+      shortStringLength(currTopic._1) +
+      4 + /* partition count for this topic */
+      currTopic._2.size * {
+        4 + /* partition id */
+        2 /* error code */
+      }
+    })
+  }
+
+  def writeTo(buffer: ByteBuffer) {
+    val groupedStatus = statusGroupedByTopic
+    buffer.putInt(correlationId)
+    buffer.putInt(txId)
+    buffer.putInt(groupedStatus.size) // topic count
+
+    groupedStatus.foreach(topicStatus => {
+      val (topic, errors) = topicStatus
+      writeShortString(buffer, topic)
+      buffer.putInt(errors.size) // partition count
+      errors.foreach {
+        case (TopicAndPartition(_, partition), error) =>
+          buffer.putInt(partition)
+          buffer.putShort(error)
+      }
+    })
+  }
+
+  override def toString(): String = {
+    val requestInfo = new StringBuilder
+    requestInfo.append("txId: " + txId)
+    requestInfo.append("; status: " + status)
+    requestInfo.toString()
+  }
+
+  override def describe(details: Boolean):String = { toString }
+}
