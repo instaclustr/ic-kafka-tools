@@ -43,15 +43,19 @@ object TransactionRequest {
   }
 }
 
+
+
+
 object TxRequestTypes {
-  val Ongoing: Short = 0
-  val Begin: Short = 1
-  val PreCommit: Short = 2
-  val Commit: Short = 3
-  val Committed: Short = 4
-  val PreAbort: Short = 5
-  val Abort: Short = 6
-  val Aborted: Short = 7
+  // The following flags are set in the message header of both data records and transaction control records as described below
+  val Ongoing: Short = 0   // Sent from Producer to data brokers (i.e., set in the header of the actual data records)
+  val Begin: Short = 1     // Sent from Producer to Transaction Manager, appended to transactionTopic.
+  val PreCommit: Short = 2 // Sent from Producer to Transaction Manager, appended to transactionTopic.
+  val Commit: Short = 3    // Sent from Transaction Manager to Brokers, appended to topic partitions. (Also read by consumer.)
+  val Committed: Short = 4 // Appended to transaction control topic after Transaction Manager receives a successful response from "Commit" requests.
+  val PreAbort: Short = 5  // Similar to "PreCommit".
+  val Abort: Short = 6     // Similar to "Commit".
+  val Aborted: Short = 7   // Similar to "Committed".
 }
 
 
