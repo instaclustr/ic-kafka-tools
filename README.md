@@ -1,6 +1,20 @@
-Apache Kafka
+Apache Kafka (Instaclustr ic-kafka-topics fork)
 =================
-See our [web site](http://kafka.apache.org) for details on the project.
+
+### Instaclustr ic-kafka-topics
+This repository is a fork of Apache Kafka, with the 1.1 branch including a tool _ic-kafka-topics.sh_.  This tool can be used as an alternative to the standard _kafka-topics.sh_ tool.  Unlike _kafka-topic.sh_, _ic-kafka-topics.sh_ does not require a connection to Zookeeper and can be used to manage kafka-topics via the Kafka AdminClient using just a Kafka connection.  Instaclustr customers who need to manage their own topics may use this tool with Instaclustr's managed Apache Kafka.  It is possible that future work described in existing Kafka Improvement Proposals (particularly KIP-248 & KIP-195) may make make this tool unneccesary.
+
+
+
+Further details on using the tool are contained on the Instaclustr web site [here](https://www.instaclustr.com/support/documentation/kafka/using-your-kafka-cluster/topic-management/)
+
+Further details below provide details on how to build the repository. In particular see instructions below for building a binary release gzipped tar ball
+
+    ./gradlew clean
+    ./gradlew releaseTarGz
+
+### Introduction
+See the Apache [web site](http://kafka.apache.org) for details on the project.
 
 You need to have [Gradle](http://www.gradle.org/installation) and [Java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) installed.
 
