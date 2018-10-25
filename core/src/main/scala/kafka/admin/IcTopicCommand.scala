@@ -29,7 +29,7 @@ import org.apache.kafka.common.TopicPartitionInfo
 
 import scala.collection.mutable
 import kafka.common.AdminCommandFailedException
-import kafka.consumer.Whitelist
+import kafka.utils.Whitelist
 import kafka.log.LogConfig
 import kafka.server.ConfigType
 import kafka.utils.Implicits._
@@ -278,8 +278,8 @@ object IcTopicCommand extends Logging {
           println("Note: This will have no impact if delete.topic.enable is not set to true.")
         }
       } catch {
-        case _: Throwable =>
-          throw new AdminOperationException("Error while deleting topic %s".format(topic))
+        case e: Throwable =>
+          throw new AdminOperationException("Error while deleting topic %s\n%s".format(topic, e))
       }
     }
   }
