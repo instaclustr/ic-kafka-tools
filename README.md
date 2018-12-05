@@ -212,3 +212,5 @@ Apache Kafka is interested in building the community; we would welcome any thoug
 
 To contribute follow the instructions here:
  * http://kafka.apache.org/contributing.html
+ 
+ Please see https://www.instaclustr.com/support/documentation/announcements/instaclustr-open-source-project-status/ for Instaclustr support status of the tools in this fork
