@@ -128,8 +128,8 @@ object TopicCommand extends Logging {
     topics.foreach { topic =>
       val configs = adminZkClient.fetchEntityConfig(ConfigType.Topic, topic)
       if(opts.options.has(opts.configOpt) || opts.options.has(opts.deleteConfigOpt)) {
-        println("WARNING: Altering topic configuration from this script has been deprecated and may be removed in future releases.")
-        println("         Going forward, please use kafka-configs.sh for this functionality")
+        // println("WARNING: Altering topic configuration from this script has been deprecated and may be removed in future releases.")
+        // println("         Going forward, please use kafka-configs.sh for this functionality")
 
         val configsToBeAdded = parseTopicConfigsToBeAdded(opts)
         val configsToBeDeleted = parseTopicConfigsToBeDeleted(opts)
