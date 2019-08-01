@@ -92,7 +92,6 @@ object IcTopicCommand extends Logging {
 
     val kafkaConnection = opts.options.valueOf(opts.kafkaConnectOpt)
     props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConnection)
-    println(props.toString)
     val adminClient = JAdminClient.create(props)
 
     var exitCode = 0
