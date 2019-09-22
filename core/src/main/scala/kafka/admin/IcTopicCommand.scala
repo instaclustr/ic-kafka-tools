@@ -138,18 +138,28 @@ object IcTopicCommand extends Logging {
     if (Topic.hasCollisionChars(topic))
       println("WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.")
 
+    var newTopic:NewTopic = null
+
     if (opts.options.has(opts.replicaAssignmentOpt)) {
       val assignment: util.Map[Integer, util.List[Integer]] = parseReplicaAssignment(opts.options.valueOf(opts.replicaAssignmentOpt))
-      adminClient.createTopics(Set(new NewTopic(topic, assignment)).asJavaCollection).all().get(futuresTimeoutMs, TimeUnit.MILLISECONDS)
+      newTopic = new NewTopic(topic, assignment)
     } else {
       CommandLineUtils.checkRequiredArgs(opts.parser, opts.options, opts.partitionsOpt, opts.replicationFactorOpt)
       val partitions = opts.options.valueOf(opts.partitionsOpt).intValue
       val replicas = opts.options.valueOf(opts.replicationFactorOpt).shortValue
-      val newTopic = new NewTopic(topic,partitions,replicas)
-      val createTopicOptions = new CreateTopicsOptions()
-
-      adminClient.createTopics(Seq(newTopic).asJavaCollection, createTopicOptions).all().get(futuresTimeoutMs, TimeUnit.MILLISECONDS)
+      newTopic = new NewTopic(topic,partitions,replicas)
     }
+
+
+    if(opts.options.has(opts.configOpt)) {
+      val configsToBeAdded = parseTopicConfigsToBeAdded(opts).asScala.asJava
+      newTopic.configs(configsToBeAdded)
+    }
+
+
+    val createTopicOptions = new CreateTopicsOptions()
+    adminClient.createTopics(Seq(newTopic).asJavaCollection, createTopicOptions).all().get(futuresTimeoutMs, TimeUnit.MILLISECONDS)
+
     println("Created topic \"%s\".".format(topic))
 
   }
