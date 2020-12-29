@@ -150,18 +150,28 @@ object IcTopicCommand extends Logging {
       newTopic = new NewTopic(topic,partitions,replicas)
     }
 
-
     if(opts.options.has(opts.configOpt)) {
       val configsToBeAdded = parseTopicConfigsToBeAdded(opts).asScala.asJava
       newTopic.configs(configsToBeAdded)
     }
 
-
     val createTopicOptions = new CreateTopicsOptions()
-    adminClient.createTopics(Seq(newTopic).asJavaCollection, createTopicOptions).all().get(futuresTimeoutMs, TimeUnit.MILLISECONDS)
 
-    println("Created topic \"%s\".".format(topic))
-
+    try {
+      adminClient.createTopics(Seq(newTopic).asJavaCollection, createTopicOptions).all().get(futuresTimeoutMs, TimeUnit.MILLISECONDS)
+      println("Created topic \"%s\".".format(topic))
+    } catch {
+      case e: java.util.concurrent.ExecutionException  => {
+        val causeOption: Option[Throwable] = Option(e.getCause)
+        causeOption match {
+          case Some(cause) =>
+            if (!(ifNotExists && cause.isInstanceOf[TopicExistsException])) throw e
+          case None =>
+            throw e
+        }
+      }
+      case defaultException => throw defaultException
+    }
   }
 
 
